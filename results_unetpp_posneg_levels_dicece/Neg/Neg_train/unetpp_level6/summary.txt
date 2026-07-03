@@ -1,0 +1,14 @@
+target_class: Neg
+loss: dicece
+in_channels: 3
+level: 6
+samples: 40 (foreground=34, background=6)
+epochs: 150
+batch_size: 1
+lr: 0.0001
+final_train_loss: 0.278727
+best_train_loss: 0.275054
+best_train_epoch: 146
+best_val_loss: 0.391890
+best_val_epoch: 147
+test_loss: 0.583506

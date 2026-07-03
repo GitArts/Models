@@ -1,0 +1,14 @@
+target_class: Pos
+loss: dicece
+in_channels: 3
+level: 6
+samples: 303 (foreground=291, background=12)
+epochs: 150
+batch_size: 1
+lr: 0.0001
+final_train_loss: 0.238469
+best_train_loss: 0.236879
+best_train_epoch: 147
+best_val_loss: 0.384018
+best_val_epoch: 133
+test_loss: 0.340557

@@ -1,0 +1,14 @@
+loss: ce
+in_channels: 3
+level: 1
+samples: 157
+epochs: 150
+batch_size: 1
+lr: 0.0001
+final_train_loss: 0.336559
+best_train_loss: 0.267371
+best_train_epoch: 142
+best_val_loss: 0.472877
+best_val_epoch: 148
+test_loss: 0.623148
+test_loss_epoch: 150

@@ -1,0 +1,14 @@
+loss: dice
+in_channels: 3
+level: 3
+samples: 5858
+epochs: 150
+batch_size: 1
+lr: 0.0001
+final_train_loss: 0.127095
+best_train_loss: 0.125914
+best_train_epoch: 104
+best_val_loss: 0.108659
+best_val_epoch: 109
+test_loss: 0.131676
+test_loss_epoch: 150

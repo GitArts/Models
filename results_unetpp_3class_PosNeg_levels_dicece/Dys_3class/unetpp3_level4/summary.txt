@@ -1,0 +1,15 @@
+model: unetpp_3class
+classes: 0=background, 1=Neg, 2=Pos
+loss: dicece
+in_channels: 3
+level: 4
+samples: 80 (neg_tiles=40, pos_tiles=40)
+epochs: 150
+batch_size: 1
+lr: 0.0001
+final_train_loss: 0.524913
+best_train_loss: 0.524913
+best_train_epoch: 150
+best_val_loss: 0.585218
+best_val_epoch: 146
+test_loss: 1.478272

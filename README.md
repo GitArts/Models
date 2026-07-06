@@ -74,32 +74,6 @@ python evaluate_unetpp_posneg_levels.py \
   --loss dicece \
   --seed 42
 
-## Why `tissue_mask.py`?
-
-At eval time, by default (`--tissue-mask otsu`):
-
-Histology tiles include large areas of empty glass and background that are not part of the tissue region of interest.
-During **training**, models see full tiles and learn from the masks as exported; 
-During **evaluation**, we want metrics that reflect segmentation quality **on tissue only**, 
-in line with how predictions are used on whole slides. 
-The module `tissue_mask.py` provides that step: for each tile it builds a binary tissue mask from the RGB image, 
-then clears both the model prediction and the ground-truth mask outside that region before TP/TN/FP/FN and Dice are accumulated.
-
-
-The default method is **Otsu** (`--tissue-mask otsu`). The tile is converted to grayscale, thresholded with Otsu’s method, 
-and cleaned with morphological operations (small objects and holes removed). 
-This works well when slides have no pen markings, because dark ink can look like tissue under a simple threshold. 
-When **pen markings** are present, use **`--tissue-mask segmenter`**, which runs the SlideSegmenter neural network to 
-separate tissue from background and ink; install it with `pip install git+https://github.com/RTLucassen/slidesegmenter`. 
-To score **every pixel** in the tile (including glass), pass **`--tissue-mask none`**.
-
-
-| `--tissue-mask` | When to use |
-|-----------------|-------------|
-| `otsu` (default) | No pen markings on slides |
-| `segmenter` | Pen ink present — needs `pip install git+https://github.com/RTLucassen/slidesegmenter` |
-| `none` | All pixels (old behaviour) |
-
 ---
 
 ## Flag descrition
@@ -141,6 +115,36 @@ Outputs & previews
 	--save-all-test-outputs — Save all test tiles (input, GT mask, pred mask).
 	--save-all-include-overlays — Also save overlay and GT vs pred images (needs --save-all-test-outputs).
 	--skip-missing — Skip levels without checkpoint instead of failing.
+
+---
+
+## Why `tissue_mask.py`?
+
+At eval time, by default (`--tissue-mask otsu`):
+
+Histology tiles include large areas of empty glass and background that are not part of the tissue region of interest.
+During **training**, models see full tiles and learn from the masks as exported;
+During **evaluation**, we want metrics that reflect segmentation quality **on tissue only**,
+in line with how predictions are used on whole slides.
+The module `tissue_mask.py` provides that step: for each tile it builds a binary tissue mask from the RGB image,
+then clears both the model prediction and the ground-truth mask outside that region before TP/TN/FP/FN and Dice are accumulated.
+
+
+The default method is **Otsu** (`--tissue-mask otsu`). The tile is converted to grayscale, thresholded with Otsu’s method,
+and cleaned with morphological operations (small objects and holes removed).
+This works well when slides have no pen markings, because dark ink can look like tissue under a simple threshold.
+When **pen markings** are present, use **`--tissue-mask segmenter`**, which runs the SlideSegmenter neural network to
+separate tissue from background and ink; install it with `pip install git+https://github.com/RTLucassen/slidesegmenter`.
+To score **every pixel** in the tile (including glass), pass **`--tissue-mask none`**.
+
+
+| `--tissue-mask` | When to use |
+|-----------------|-------------|
+| `otsu` (default) | No pen markings on slides |
+| `segmenter` | Pen ink present — needs `pip install git+https://github.com/RTLucassen/slidesegmenter` |
+| `none` | All pixels (old behaviour) |
+
+---
 
 ## Dice columns in CSV
 

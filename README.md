@@ -2,15 +2,26 @@ This guide covers **5 trained model families** (**31 U-Net++ checkpoints** in to
 
 | # | Model family | Run name / results folder | Levels | Checkpoints | Task |
 |---|--------------|---------------------------|--------|-------------|------|
-| 1 | **Dysplasia** | `results_unetpp_levels/Dysplasia` | 1–6 | **6** | Binary segmentation (CE) |
-| 2 | **IM_only_level_3** | `results_unetpp_levels/IM_only_level_3` | 3 | **1** | Binary segmentation (Dice) |
-| 3 | **HID_model** | `results_unetpp_levels_dicece/HID_model` (HPC) | 1–6 | **6** | Binary segmentation |
+| 1 | **Dysplasia** | `Dysplasia` | 1–6 | **6** | Binary segmentation (CE) |
+| 2 | **IM_only_level_3** | `IM_only_level_3` | 3 | **1** | Binary segmentation (Dice) |
+| 3 | **HID_model** | `HID_model` | 1–6 | **6** | Binary segmentation |
 | 4 | **Pos / Neg** | `results_unetpp_posneg_levels_dicece/Pos` + `.../Neg` | 1–6 each | **12** | Two binary models (Pos and Neg, Dice+CE) |
 | 5 | **3-class PosNeg** | `results_unetpp_3class_PosNeg_levels_dicece` | 1–6 | **6** | One model: background / Neg / Pos |
 | | | | **Total** | **31** | |
 
 Sections **1–5** below match this table. Eval script **#1–3** use `evaluate_unetpp_levels.py`; **#4** uses `evaluate_unetpp_posneg_levels.py` (run twice for Pos and Neg); **#5** uses `evaluate_unetpp_3class_levels.py`.
 
+## Files you need
+
+| File | Why |
+|------|-----|
+| `evaluate_unetpp_levels.py` | Binary U-Net++ (Dysplasia, IM level3, HID_model, …) |
+| `evaluate_unetpp_posneg_levels.py` | Separate Pos / Neg binary models |
+| `evaluate_unetpp_3class_levels.py` | Single 3-class model (bg / Neg / Pos) |
+| `Training_unetpp_*.py` | Imported by eval (same folder) |
+| **`tissue_mask.py`** | **Required** — see below |
+
+Copy `tissue_mask.py` next to the eval script if you only sync individual files.
 
 ## Eval Dysplasia 
 python evaluate_unetpp_levels.py \

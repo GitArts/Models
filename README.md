@@ -1,6 +1,18 @@
+This guide covers **5 trained model families** (**31 U-Net++ checkpoints** in total). Training always saves **one network per pyramid level** (`unetpp_level{N}/best_model.pth` for binary runs, `unetpp3_level{N}/best_model.pth` for the 3-class run). Levels are the QuPath export downsampling steps **1–6** (except IM, which uses **level 3 only**).
+
+| # | Model family | Run name / results folder | Levels | Checkpoints | Task |
+|---|--------------|---------------------------|--------|-------------|------|
+| 1 | **Dysplasia** | `results_unetpp_levels/Dysplasia` | 1–6 | **6** | Binary segmentation (CE) |
+| 2 | **IM_only_level_3** | `results_unetpp_levels/IM_only_level_3` | 3 | **1** | Binary segmentation (Dice) |
+| 3 | **HID_model** | `results_unetpp_levels_dicece/HID_model` (HPC) | 1–6 | **6** | Binary segmentation |
+| 4 | **Pos / Neg** | `results_unetpp_posneg_levels_dicece/Pos` + `.../Neg` | 1–6 each | **12** | Two binary models (Pos and Neg, Dice+CE) |
+| 5 | **3-class PosNeg** | `results_unetpp_3class_PosNeg_levels_dicece` | 1–6 | **6** | One model: background / Neg / Pos |
+| | | | **Total** | **31** | |
+
+Sections **1–5** below match this table. Eval script **#1–3** use `evaluate_unetpp_levels.py`; **#4** uses `evaluate_unetpp_posneg_levels.py` (run twice for Pos and Neg); **#5** uses `evaluate_unetpp_3class_levels.py`.
 
 
-# ======= Test Dysplasia =========
+## Eval Dysplasia 
 python evaluate_unetpp_levels.py \
   --data-root ./Dysplasia \
   --models-root ./results_unetpp_levels_dicece \
@@ -9,7 +21,7 @@ python evaluate_unetpp_levels.py \
   --eval-from both \
   --save-all-test-outputs
 
-# ======= Test IM only level3 =========
+## Eval IM only level3
 python evaluate_unetpp_levels.py \
   --data-root Data \
   --models-root results_unetpp_levels_dice \
@@ -20,7 +32,7 @@ python evaluate_unetpp_levels.py \
   --tissue-mask otsu
 
 
-# ======= Test 3 class dysplasia =========
+## Eval 3 class dysplasia 
 python evaluate_unetpp_3class_levels.py \
   --data-root Data/Kopiga_DB \
   --models-root results_unetpp_3class_levels_dicece \
@@ -29,7 +41,7 @@ python evaluate_unetpp_3class_levels.py \
   --levels 1,2,3,4,5,6 \
   --eval-from test_folders
 
-
+## Eval 2 class dysplasia Pos only class
 python evaluate_unetpp_posneg_levels.py \
   --target-class Pos \
   --data-root ~/AIDA/Data/Kopiga_DB \
@@ -40,6 +52,7 @@ python evaluate_unetpp_posneg_levels.py \
   --loss dicece \
   --seed 42
 
+## Eval 2 class dysplasia only Neg class
 python evaluate_unetpp_posneg_levels.py \
   --target-class Neg \
   --data-root ~/AIDA/Data/Kopiga_DB \
@@ -50,8 +63,35 @@ python evaluate_unetpp_posneg_levels.py \
   --loss dicece \
   --seed 42
 
+## Why `tissue_mask.py`?
 
-# Flag descrition
+At eval time, by default (`--tissue-mask otsu`):
+
+Histology tiles include large areas of empty glass and background that are not part of the tissue region of interest.
+During **training**, models see full tiles and learn from the masks as exported; 
+During **evaluation**, we want metrics that reflect segmentation quality **on tissue only**, 
+in line with how predictions are used on whole slides. 
+The module `tissue_mask.py` provides that step: for each tile it builds a binary tissue mask from the RGB image, 
+then clears both the model prediction and the ground-truth mask outside that region before TP/TN/FP/FN and Dice are accumulated.
+
+
+The default method is **Otsu** (`--tissue-mask otsu`). The tile is converted to grayscale, thresholded with Otsu’s method, 
+and cleaned with morphological operations (small objects and holes removed). 
+This works well when slides have no pen markings, because dark ink can look like tissue under a simple threshold. 
+When **pen markings** are present, use **`--tissue-mask segmenter`**, which runs the SlideSegmenter neural network to 
+separate tissue from background and ink; install it with `pip install git+https://github.com/RTLucassen/slidesegmenter`. 
+To score **every pixel** in the tile (including glass), pass **`--tissue-mask none`**.
+
+
+| `--tissue-mask` | When to use |
+|-----------------|-------------|
+| `otsu` (default) | No pen markings on slides |
+| `segmenter` | Pen ink present — needs `pip install git+https://github.com/RTLucassen/slidesegmenter` |
+| `none` | All pixels (old behaviour) |
+
+---
+
+## Flag descrition
 
 Data & checkpoints
 
@@ -90,3 +130,10 @@ Outputs & previews
 	--save-all-test-outputs — Save all test tiles (input, GT mask, pred mask).
 	--save-all-include-overlays — Also save overlay and GT vs pred images (needs --save-all-test-outputs).
 	--skip-missing — Skip levels without checkpoint instead of failing.
+
+## Dice columns in CSV
+
+- **dice_micro** — all pixels pooled
+- **dice_micro_empty1** — same; empty-empty globally → 1.0
+- **dice_mean_excl_empty** — mean per-tile Dice, skip empty-empty tiles
+- **dice_mean_empty1** — mean per-tile Dice, empty-empty tile → 1.0
